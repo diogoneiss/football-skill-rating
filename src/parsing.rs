@@ -14,3 +14,9 @@ pub fn load_csv(path: &str) -> Result<Vec<Partida>, Box<dyn Error>> {
     
     Ok(result)
 }
+
+
+
+pub fn filter_by_year(partidas: &Vec<Partida>, year: u16) -> Vec<Partida> {
+    partidas.iter().filter(|p| p.year == year).cloned().collect()
+}

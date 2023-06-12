@@ -10,5 +10,14 @@ mod error;
 fn main() {
     println!("Hello, world!");
 
-    parsing::load_csv("./src/brasileirao.csv").unwrap();
+    let partidas = parsing::load_csv("./src/brasileirao.csv").or_else(|e| {
+        println!("Erro fazendo parse do csv de partidas: {}", e);
+        Err(e)
+    }).unwrap();
+
+    let temporada2005 = parsing::filter_by_year(&partidas, 2005);
+
+    let mut tabela = data_structures::LeagueTable::new(&temporada2005);
+    let classificacoes = tabela.rank();
+    tabela.print_final_table();
 }
