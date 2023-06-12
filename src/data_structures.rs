@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use skillratings::elo::EloRating;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum MatchResult {
@@ -149,6 +150,41 @@ impl<'a> LeagueTable<'a> {
             );
         }
     }
+    
+    pub fn print_final_table_with_elo(&self, elo_ratings: &std::collections::HashMap<String, EloRating>) {
+        let ranked_teams = self.rank();
+    
+        println!(
+            "League Table for the year {}: Division {} of {}",
+            self.year, self.division, self.campeonato
+        );
+    
+        println!(
+            "{:<5} {:<8} {:<20} {:<7} {:<5} {:<5} {:<7} {:<14} {:<14} {:<8} ",
+            "Rank", "Elo", "Team", "Points", "Wins", "Draws", "Losses", "Goals Scored", "Goals Conceded", "Played",
+        );
+    
+        for (index, (team_name, team_stats)) in ranked_teams.iter().enumerate() {
+            let elo_rating = elo_ratings.get(*team_name).cloned().unwrap_or(EloRating::new());
+            let elo_value = elo_rating.rating;
+            println!(
+                "{:<5} {:<8} {:<20} {:<7} {:<5} {:<5} {:<7} {:<14} {:<14} {:<8} ",
+                index + 1,  // Add 1 to the index because enumerate starts at 0
+                format!("{:.2}", elo_value), 
+                team_name,
+                team_stats.points,
+                team_stats.wins,
+                team_stats.draws,
+                team_stats.losses,
+                team_stats.goals_scored,
+                team_stats.goals_conceded,
+                team_stats.played,
+                
+            );
+        }
+    }
+    
+
 }
 #[derive(Debug, Clone)]
 pub struct Season {

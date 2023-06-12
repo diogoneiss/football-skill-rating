@@ -3,7 +3,7 @@ use crate::data_structures::Season;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-type SeasonMap = HashMap<u16, Season>;
+pub type SeasonMap = HashMap<u16, Season>;
 pub fn construct_seasons(partidas: Vec<Partida>) -> SeasonMap {
     let mut seasons: SeasonMap = HashMap::new();
     for partida in partidas {
