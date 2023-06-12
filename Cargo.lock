@@ -292,6 +292,9 @@ name = "skillratings"
 version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "82a9810ae02fd1f6d86c66fa7eebe1224576251ea9b0b62fa1f2ea29502599aa"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "strsim"

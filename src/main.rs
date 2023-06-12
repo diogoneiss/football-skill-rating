@@ -8,9 +8,10 @@ mod parsing;
 mod error;
 // reference utils/season.rs
 mod utils;
-
 use utils::season::construct_seasons;
 
+//reference elo/train.rs
+mod elo;
 
 fn main() {
     
@@ -41,5 +42,9 @@ fn main() {
 
     let season_years = utils::season::get_seasons_in_season_map(&seasons);
     println!("{:?}", season_years);
+
+    let all_teams = utils::season::get_all_teams_in_season_map(&seasons);
+
+    println!("{:?}", all_teams);
     
 }

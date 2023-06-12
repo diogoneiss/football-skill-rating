@@ -100,13 +100,11 @@ impl<'a> LeagueTable<'a> {
             table,
         }
     }
-}
 
-impl<'a> LeagueTable<'a> {
     pub fn rank(&self) -> Vec<(&'a str, &TeamStats)> {
         let mut teams: Vec<_> = self.table.iter().map(|(a, b)| (*a, b)).collect();
 
-        teams.sort_by(|(a_name, a_stats), (b_name, b_stats)| {
+        teams.sort_by(|(_, a_stats), (_, b_stats)| {
             let a_goal_diff = a_stats.goals_scored as i32 - a_stats.goals_conceded as i32;
             let b_goal_diff = b_stats.goals_scored as i32 - b_stats.goals_conceded as i32;
 
@@ -121,8 +119,7 @@ impl<'a> LeagueTable<'a> {
 
         teams
     }
-}
-impl<'a> LeagueTable<'a> {
+
 
     pub fn print_final_table(&self) {
         let ranked_teams = self.rank();

@@ -1,6 +1,7 @@
 use crate::data_structures::Partida;
 use crate::data_structures::Season;
 use std::collections::HashMap;
+use std::collections::HashSet;
 
 type SeasonMap = HashMap<u16, Season>;
 pub fn construct_seasons(partidas: Vec<Partida>) -> SeasonMap {
@@ -20,4 +21,18 @@ pub fn get_seasons_in_season_map(seasons: &SeasonMap) -> Vec<u16> {
     }
     seasons_vec.sort_unstable();
     seasons_vec
+}
+
+pub fn get_all_teams_in_season_map(seasons: &SeasonMap) -> Vec<String> {
+    let mut teams = HashSet::new();
+    for season in seasons.values() {
+        for partida in &season.matches {
+            teams.insert(partida.home.clone());
+            teams.insert(partida.away.clone());
+        }
+    }
+    //converter o hashset para um vetor e ordenar lexicograficamente
+    let mut teams_vec: Vec<String> = teams.into_iter().collect();
+    teams_vec.sort_unstable();
+    teams_vec
 }
