@@ -12,7 +12,7 @@ use utils::season::construct_seasons;
 
 //reference elo/train.rs
 mod elo;
-use elo::train::construct_elo_table;
+use elo::train::{construct_elo_table_for_year, construct_elo_table_for_time_series};
 
 fn main() {
     
@@ -28,7 +28,7 @@ fn main() {
     let classificacoes = tabela.rank();
 
 
-    let seasons = construct_seasons(partidas);
+    let seasons = construct_seasons(partidas.clone());
     let desired_season = seasons.get(&2005).unwrap();
     println!("{:?} {:?} {:?} {:?}", desired_season.year, desired_season.division, desired_season.campeonato, desired_season.matches.len());
     
@@ -47,11 +47,14 @@ fn main() {
     let all_teams = utils::season::get_all_teams_in_season_map(&seasons);
 
     println!("{:?}", all_teams);
-
-    let elo_table = construct_elo_table(&temporada2005, None);
+    /*
+    let elo_table = construct_elo_table_for_year(&temporada2005, None);
     tabela.print_final_table_with_elo(&elo_table);
 
-    let elo_table2 = construct_elo_table(&temporada2005, Some(elo_table));
+    let elo_table2 = construct_elo_table_for_year(&temporada2005, Some(elo_table));
     tabela.print_final_table_with_elo(&elo_table2);
-    
+    */
+
+    construct_elo_table_for_time_series(partidas, 2003, 2015)
+
 }
