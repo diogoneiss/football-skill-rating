@@ -6,21 +6,26 @@ use skillratings::{
     Outcomes,
 };
 
+use super::data_structures::{EloTable, RankedMatch};
 use core::panic;
 use std::collections::HashMap;
-use super::data_structures::{EloTable, RankedMatch};
-
 
 pub fn construct_elo_table_for_year(
     partidas: &Vec<data_structures::Partida>,
     starting_elos: Option<EloTable>,
+    elo_config: Option<&EloConfig>,
 ) -> EloTable {
-    let print_exemplo = false;
+    let print_exemplo = true;
 
     //construir tabela de elo se vier vazia
     let mut elo_table = match starting_elos {
         Some(elos) => elos,
         None => HashMap::new(),
+    };
+    let default_config = EloConfig::default();
+    let elo_config = match elo_config {
+        Some(config) => config,
+        None => &default_config,
     };
 
     let mut results_table: HashMap<String, Vec<RankedMatch>> = HashMap::new();
@@ -57,7 +62,7 @@ pub fn construct_elo_table_for_year(
             &home_team_elo,
             &away_team_elo,
             &home_outcome,
-            &EloConfig::new(),
+            elo_config,
         );
 
         if print_exemplo {
@@ -83,36 +88,52 @@ pub fn construct_elo_table_for_year(
     elo_table
 }
 
+fn check_time_series_interval(
+    match_years_vector: &Vec<u16>,
+    desired_range: &std::ops::RangeInclusive<u16>,
+) {
+    for year in desired_range.clone().into_iter() {
+        if !match_years_vector.contains(&year) {
+            let error_msg = format!("Year {} not found in season map. The range was {:?} and the years present are {:?}", year, &desired_range, match_years_vector);
+
+            panic!("{}", error_msg);
+        }
+    }
+}
+
 pub fn construct_elo_table_for_time_series(
     all_matches: Vec<data_structures::Partida>,
+    elo_config: Option<&EloConfig>,
     start_year: u16,
     end_year: u16,
-) {
+) -> EloTable {
+
+    let default_config = EloConfig::default();
+    let elo_config = match elo_config {
+        Some(config) => config,
+        None => &default_config,
+    };
+
     let seasons_map: SeasonMap = construct_seasons(all_matches);
 
     let years_in_season_map = get_seasons_in_season_map(&seasons_map);
 
     //verificar se o vetor é contíguo
-    let desired_range = start_year..=end_year;
+    let desired_range: std::ops::RangeInclusive<u16> = start_year..=end_year;
 
-    for year in desired_range.clone().into_iter() {
-        if !years_in_season_map.contains(&year) {
-            let error_msg = format!("Year {} not found in season map. The range was {:?} and the years present are {:?}", year, &desired_range, years_in_season_map);
-
-            panic!("{}", error_msg);
-        }
-    }
+    check_time_series_interval(&years_in_season_map, &desired_range);
 
     let mut starting_elo_table: Option<EloTable> = None;
 
     for year in desired_range.into_iter() {
         let season = seasons_map.get(&year).unwrap();
         let partidas = &season.matches;
-        let elo_table = construct_elo_table_for_year(partidas, starting_elo_table);
+        let elo_table = construct_elo_table_for_year(partidas, starting_elo_table, Some(&elo_config));
         starting_elo_table = Some(elo_table.clone());
 
         println!("Elo table for year {}", year);
         super::utils::print_elo_table(&elo_table);
-        
     }
+
+    starting_elo_table.unwrap()
 }

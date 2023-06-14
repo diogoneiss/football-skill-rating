@@ -8,6 +8,7 @@ mod parsing;
 mod error;
 // reference utils/season.rs
 mod utils;
+use skillratings::elo::EloConfig;
 use utils::season::construct_seasons;
 
 //reference elo/train.rs
@@ -47,14 +48,15 @@ fn main() {
     let all_teams = utils::season::get_all_teams_in_season_map(&seasons);
 
     println!("{:?}", all_teams);
-    /*
-    let elo_table = construct_elo_table_for_year(&temporada2005, None);
+
+    
+    let elo_table = construct_elo_table_for_year(&temporada2005, None, None);
     tabela.print_final_table_with_elo(&elo_table);
 
-    let elo_table2 = construct_elo_table_for_year(&temporada2005, Some(elo_table));
+    let elo_table2 = construct_elo_table_for_year(&temporada2005, Some(elo_table), None);
     tabela.print_final_table_with_elo(&elo_table2);
-    */
+    
 
-    construct_elo_table_for_time_series(partidas, 2003, 2015)
+    //construct_elo_table_for_time_series(partidas, Some(&EloConfig { k: 10.0}), 2003, 2004);
 
 }
