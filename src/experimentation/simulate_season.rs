@@ -12,8 +12,8 @@ use super::run_config::{RunConfig, RunHyperparameters};
 pub fn simulate_season(
     games: &Vec<Game>,
     original_elos: &EloTable,
-    run_config: RunConfig,
-    experiment_config: RunHyperparameters,
+    run_config: &RunConfig,
+    experiment_config: &RunHyperparameters,
     random_seed: u32,
 ) -> (EloTable, Vec<Game>) {
     // For each game, simulate the game and update the elo table accordingly. We will also update the games with the results for debugging purposes, so we can

@@ -23,6 +23,7 @@ impl Season {
 
 pub type SeasonMap = HashMap<u16, Season>;
 
+//TODO: Make this use a borrow instead of taking ownership
 pub fn construct_seasons(games: Vec<Game>) -> SeasonMap {
     let mut seasons: SeasonMap = HashMap::new();
 
