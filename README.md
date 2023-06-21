@@ -1,5 +1,13 @@
 # Projeto Ciência de Dados Aplicada ao Futebol e Computação Natural
 
+TODOs
+
+- Achar uma lógica melhor que utils, isso ta confuso, talvez models? Não sei o jeito mais rustáceo
+- Mover Season e League pra fora de elo, elas não são relacionadas a elo
+- Extrair types para um arquivo types, sla, como no caso da EloTable 
+
+
+
 - [Projeto Ciência de Dados Aplicada ao Futebol e Computação Natural](#projeto-ciência-de-dados-aplicada-ao-futebol-e-computação-natural)
   - [Problemas atuais](#problemas-atuais)
   - [Como o elo funciona normalmente](#como-o-elo-funciona-normalmente)

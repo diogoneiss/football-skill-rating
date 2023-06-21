@@ -6,8 +6,10 @@ use crate::util::game::Game;
 
 use super::util::season::{construct_seasons, get_seasons_in_season_map, SeasonMap};
 
-type RankedMatch = (EloRating, skillratings::Outcomes);
-type EloTable = HashMap<String, EloRating>;
+pub type RankedMatch = (EloRating, skillratings::Outcomes);
+pub type EloTable = HashMap<String, EloRating>;
+
+const DEBUG_INFO: bool = false;
 
 pub fn construct_elo_table_for_year(
     partidas: &Vec<Game>,
@@ -58,18 +60,20 @@ pub fn construct_elo_table_for_year(
         let (new_player_home, new_player_away) =
             elo(&home_team_elo, &away_team_elo, &home_outcome, elo_config);
 
-        if home_team == "Cruzeiro" || away_team == "Cruzeiro" {
-            println!("{:?}", partida);
-            if home_team == "Cruzeiro" {
-                println!(
-                    "Cruzeiro: elo: {} -> {}",
-                    home_team_elo.rating, new_player_home.rating
-                );
-            } else {
-                println!(
-                    "Cruzeiro: elo: {} -> {}",
-                    away_team_elo.rating, new_player_away.rating
-                );
+        if DEBUG_INFO {
+            if home_team == "Cruzeiro" || away_team == "Cruzeiro" {
+                println!("{:?}", partida);
+                if home_team == "Cruzeiro" {
+                    println!(
+                        "Cruzeiro: elo: {} -> {}",
+                        home_team_elo.rating, new_player_home.rating
+                    );
+                } else {
+                    println!(
+                        "Cruzeiro: elo: {} -> {}",
+                        away_team_elo.rating, new_player_away.rating
+                    );
+                }
             }
         }
 
@@ -122,8 +126,10 @@ pub fn construct_elo_table_for_time_series(
             construct_elo_table_for_year(partidas, starting_elo_table, Some(elo_config));
         starting_elo_table = Some(elo_table.clone());
 
-        println!("Elo table for year {}", year);
-        print_elo_table(&elo_table);
+        if DEBUG_INFO {
+            println!("Elo table for year {}", year);
+            print_elo_table(&elo_table);
+        }
     }
 
     starting_elo_table.unwrap()
