@@ -128,14 +128,14 @@ pub fn construct_elo_table_for_time_series(
 
         if DEBUG_INFO {
             println!("Elo table for year {}", year);
-            print_elo_table(&elo_table);
+            print_elo_table(&elo_table, false);
         }
     }
 
     starting_elo_table.unwrap()
 }
 
-pub fn print_elo_table(elo_table: &EloTable) {
+pub fn print_elo_table(elo_table: &EloTable, order_elos: bool) {
     let max_team_length = elo_table.keys().map(|team| team.len()).max().unwrap_or(0);
 
     let max_elo_length = elo_table
@@ -149,7 +149,19 @@ pub fn print_elo_table(elo_table: &EloTable) {
     let divider = "-".repeat(divider_length);
 
     println!("{}", divider);
-    for (team, elo) in elo_table {
+
+    // Convert the elo_table to a vector of tuples so it can be sorted.
+    let mut table: Vec<_> = elo_table.iter().collect();
+    
+    if order_elos {
+        // Sort by elo in descending order.
+        table.sort_by(|a, b| b.1.rating.partial_cmp(&a.1.rating).unwrap_or(std::cmp::Ordering::Equal));
+    } else {
+        // Sort alphabetically by team name.
+        table.sort_by_key(|a| a.0.clone());
+    }
+
+    for (team, elo) in table {
         let elo_string = format!("{:.2}", elo.rating);
         println!(
             "| {:<max_team_width$} : {:<max_elo_width$} |",
@@ -161,3 +173,4 @@ pub fn print_elo_table(elo_table: &EloTable) {
     }
     println!("{}", divider);
 }
+

@@ -27,8 +27,6 @@ fn main() {
 
     let errors = run_experiments(&partidas , &run_config, &experiment_config);
 
-    for error in errors {
-        print!("{} ", error);
-    }
+    experimentation::errors::print_errors_by_year(&errors, &experiment_config)
 
 }

@@ -106,7 +106,7 @@ pub fn run_experiments(
 
     println!("Finished experiments");
 
-    print_elo_table(&elo_table);
+    print_elo_table(&elo_table, true);
 
     errors_per_season
 }
