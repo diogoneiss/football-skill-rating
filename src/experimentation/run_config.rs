@@ -9,7 +9,7 @@ pub struct RunConfig {
     pub k_factor: f64,
 }
 
-//These trait implementations will probably be required to perform the genetic algorithm operations
+// These trait implementations will probably be required to perform the genetic algorithm operations
 impl PartialEq for RunConfig {
     fn eq(&self, other: &Self) -> bool {
         (self.k_factor - other.k_factor).abs() < EPSILON
@@ -26,16 +26,13 @@ impl std::hash::Hash for RunConfig {
 
 impl Eq for RunConfig {}
 
-
 impl Default for RunConfig {
     fn default() -> Self {
-        RunConfig {
-            k_factor: 20.0,
-        }
+        RunConfig { k_factor: 20.0 }
     }
 }
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct RunHyperparameters {
     pub starting_elo: u32,
     pub starting_year: u16,
@@ -59,5 +56,20 @@ impl Default for RunHyperparameters {
             leagues_to_use: 1,
             random_variations: 20,
         }
+    }
+}
+
+impl RunHyperparameters {
+    pub fn print_errors_by_year(&self, errors: &[f64]) {
+        let base_year = self.backtest_years + self.starting_year + 1;
+
+        let horizontal_line = format!("{:-<1$}", "", 19);
+        println!("{}", &horizontal_line);
+        println!("|Errors by year:  |");
+
+        for (i, error) in errors.iter().enumerate() {
+            println!("|{}  :  {:.2}   |", base_year + i as u16, error);
+        }
+        println!("{}", &horizontal_line);
     }
 }

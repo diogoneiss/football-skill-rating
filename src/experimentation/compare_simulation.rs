@@ -3,8 +3,10 @@ use std::collections::HashMap;
 use skillratings::elo::EloConfig;
 
 use crate::elo::{
-    self,
-    train::{construct_elo_table_for_time_series, construct_elo_table_for_year, EloTable, print_elo_table},
+    train::{
+        construct_elo_table_for_time_series, construct_elo_table_for_year, print_elo_table,
+        EloTable,
+    },
     util::{league::LeagueTable, season},
 };
 
@@ -15,7 +17,7 @@ use super::{compare_simulation, run_config};
 /// Performs the backtesting for t years and experiments with the elo metric for n-t remaining years.
 /// Note that the next year is based on the real year, not the simulated one.
 pub fn run_experiments(
-    all_games: &Vec<Game>,
+    all_games: &[Game],
     run_config: &run_config::RunConfig,
     experiment_config: &run_config::RunHyperparameters,
 ) -> Vec<f64> {
@@ -27,11 +29,11 @@ pub fn run_experiments(
     // Pre processing: split the games into seasons, determine start and end years of backtesting
     let end_year = experiment_config.starting_year + experiment_config.backtest_years;
 
-    let seasons_map = season::construct_seasons(all_games.clone());
+    let seasons_map = season::construct_seasons(all_games);
 
     // 1st stage: do the elo training with the desired years of data. this is the backtesting
     let mut elo_table = construct_elo_table_for_time_series(
-        all_games.clone(),
+        all_games,
         Some(&elo_config),
         experiment_config.starting_year,
         end_year,
@@ -45,14 +47,13 @@ pub fn run_experiments(
 
     // 2nd stage: simulate the seasons after the training period, until the end of the dataset
     let start_t = end_year + 1;
-    let end_t = seasons_map.iter().map(|(year, _)| year).max().unwrap().clone();
+    let end_t = *seasons_map.keys().max().unwrap();
 
     let experimentation_range = start_t..=end_t;
 
     let mut errors_per_season: Vec<f64> = Vec::new();
 
     for s_year in experimentation_range.into_iter() {
-
         //TODO: perform n random variations, with unique seeds
 
         let season = seasons_map.get(&s_year).unwrap();
@@ -62,14 +63,14 @@ pub fn run_experiments(
         OUTPUT / elo comparison decisions
         2 options on how to measure the error between expected and simulated elo
 
-        1. ORACLE: Use previous loop simulated elo and apply correct data from the current loop. We will take the t-1 table and apply the respective t real match results, implying that the 
-        elos were perfectly predicted, but using the elo values generated from previous simulations. Note that this will be used *only* for the error calculation, this elo table 
+        1. ORACLE: Use previous loop simulated elo and apply correct data from the current loop. We will take the t-1 table and apply the respective t real match results, implying that the
+        elos were perfectly predicted, but using the elo values generated from previous simulations. Note that this will be used *only* for the error calculation, this elo table
         will be discarded after the error is calculated, such that the correct match results are used only in desired eval season, the other ones are simulated.
-        This works as a oracle, which would be capable of predicting the results perfectly, even with bad elo values. Minimizing the error in this case would be equivalent to correctly 
+        This works as a oracle, which would be capable of predicting the results perfectly, even with bad elo values. Minimizing the error in this case would be equivalent to correctly
         estimating the elo values.
-        
 
-        2. REAL: Real elo table from t-1 period, updated with t period match results. 
+
+        2. REAL: Real elo table from t-1 period, updated with t period match results.
 
         Currently we are using option 2, but we should test both. this will require a refactor of the individual experiment function
         */
@@ -81,21 +82,15 @@ pub fn run_experiments(
 
         1. PROPAGATED: Use previous loop simulated elo. Feed as the starting elo for the next loop. Will required some sort of exponential moving average to deal with the propagation
         Conceptually is the best approach.
-        2. SYNTHETIC: Take the real elo table from time t-1 as input, meaning we recreate this simulated table for every experiment based on real data, 
+        2. SYNTHETIC: Take the real elo table from time t-1 as input, meaning we recreate this simulated table for every experiment based on real data,
         such that elo errors do not propagate between different seasons
 
         Currently we are using option 2, but we should test both. This will require a code refactor to deal with the update and refeeding.
         */
 
-
         // use elo table as the starting elo for the next season, using it to measure the error as well.
-        let (rmse, elo_simulated, real_elo) = run_season_experiment(
-            &season_games,
-            &elo_table,
-            &run_config,
-            &experiment_config,
-            42,
-        );
+        let (rmse, _, real_elo) =
+            run_season_experiment(season_games, &elo_table, run_config, experiment_config, 42);
 
         // Update the elo tables for the next iteration
         // As we are using option 2, we will use the real elo table for the next season, so it needs to be updated.
@@ -121,22 +116,22 @@ pub fn run_season_experiment(
     random_seed: u32,
 ) -> (f64, EloTable, EloTable) {
     let (elo_simulated, simulated_matches) = simulate_season(
-        &season_games,
-        &starting_elo,
-        &run_config,
-        &experiment_config,
+        season_games,
+        starting_elo,
+        run_config,
+        experiment_config,
         random_seed,
     );
 
     let elo_config = EloConfig {
-        k: run_config.k_factor as f64,
+        k: run_config.k_factor,
     };
 
     let real_elo =
-        construct_elo_table_for_year(&season_games, Some(starting_elo.clone()), Some(&elo_config));
+        construct_elo_table_for_year(season_games, Some(starting_elo.clone()), Some(&elo_config));
 
     let tabela_fake = LeagueTable::new(&simulated_matches, "Brasileirão", &1);
-    let tabela = LeagueTable::new(&season_games, "Brasileirão", &1);
+    let tabela = LeagueTable::new(season_games, "Brasileirão", &1);
 
     tabela.print_final_table();
     println!("--------------- Elo simulated ----------- \n");
@@ -150,7 +145,7 @@ pub fn run_season_experiment(
         println!("{}: {}", team, diff);
     }
 
-    let games_count = changed_elos(&starting_elo, &elo_simulated);
+    let games_count = changed_elos(starting_elo, &elo_simulated);
 
     let rmse_correct_mean = calculate_rmse(&elo_diff, Some(games_count));
     let rmse_all_teams = calculate_rmse(&elo_diff, Some(games_count));
@@ -173,7 +168,6 @@ fn compare_elo_tables(real_elo: &EloTable, simulated_elo: &EloTable) -> HashMap<
     elo_diff
 }
 
-//TODO: extrair para alguma pasta adequada
 fn calculate_rmse(elo_diffs: &HashMap<String, f64>, season_match_count: Option<u32>) -> f64 {
     let mut sum = 0.0;
 
@@ -188,9 +182,7 @@ fn calculate_rmse(elo_diffs: &HashMap<String, f64>, season_match_count: Option<u
 
     let mean = sum / n as f64;
 
-    let rmse = mean.sqrt();
-
-    rmse
+    mean.sqrt()
 }
 
 fn changed_elos(elo_table: &EloTable, elo_table_after_season: &EloTable) -> u32 {

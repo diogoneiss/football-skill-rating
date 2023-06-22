@@ -24,7 +24,7 @@ impl Season {
 pub type SeasonMap = HashMap<u16, Season>;
 
 //TODO: Make this use a borrow instead of taking ownership
-pub fn construct_seasons(games: Vec<Game>) -> SeasonMap {
+pub fn construct_seasons(games: &[Game]) -> SeasonMap {
     let mut seasons: SeasonMap = HashMap::new();
 
     for game in games {
@@ -32,7 +32,7 @@ pub fn construct_seasons(games: Vec<Game>) -> SeasonMap {
         let season = seasons
             .entry(year)
             .or_insert(Season::new(year, "Brasileirão", &1));
-        season.matches.push(game);
+        season.matches.push(game.clone());
     }
 
     seasons

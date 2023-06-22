@@ -1,5 +1,4 @@
 use skillratings::elo::{elo, expected_score, EloConfig, EloRating};
-use skillratings::Rating;
 
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
@@ -10,7 +9,7 @@ use crate::util::game::{Game, GameResult};
 use super::run_config::{RunConfig, RunHyperparameters};
 
 pub fn simulate_season(
-    games: &Vec<Game>,
+    games: &[Game],
     original_elos: &EloTable,
     run_config: &RunConfig,
     experiment_config: &RunHyperparameters,
@@ -20,12 +19,12 @@ pub fn simulate_season(
     // print the estimated league table
     // It's important to note that we use the games for the season only for estimation purposes, the real game outcome is not used in the simulation (maybe the goal difference)
 
-    let mut simulated_games = games.clone();
+    let mut simulated_games: Vec<Game> = games.to_vec();
     let mut starting_elos = original_elos.clone();
     let mut rng = StdRng::seed_from_u64(random_seed as u64);
 
     let elo_config = EloConfig {
-        k: run_config.k_factor as f64,
+        k: run_config.k_factor,
     };
 
     // loop over the games
@@ -40,16 +39,14 @@ pub fn simulate_season(
         new_elo.rating = experiment_config.starting_elo.into();
 
         let home_elo = match starting_elos.get(&home) {
-            Some(elo) => elo.clone(),
-            None => new_elo.clone(),
+            Some(elo) => *elo,
+            None => new_elo,
         };
 
         let away_elo = match starting_elos.get(&away) {
-            Some(elo) => elo.clone(),
-            None => new_elo.clone(),
+            Some(elo) => *elo,
+            None => new_elo,
         };
-
-       
 
         // calculate expected scores
         let (exp_home, exp_away) = expected_score(&home_elo, &away_elo);
@@ -60,11 +57,11 @@ pub fn simulate_season(
 
         // if the exp score is low, the chances of yielding a random number lower that exp is the probability of winning (small)
         // if the exp score is high, like 0.8, the chances of yielding a random number lower than exp is 0.8, so the probability of winning is high
-        let home_wins =  result_home < exp_home;
+        let home_wins = result_home < exp_home;
         let away_wins = result_away < exp_away;
 
         let mut simulated_game = game.clone();
-        
+
         // assign the result to the simulated game according to home team's perspective
         simulated_game.result = match (home_wins, away_wins) {
             (true, false) => GameResult::H,
@@ -89,7 +86,6 @@ pub fn simulate_season(
         let home_diff = new_player_home.rating - home_elo.rating;
         let away_diff = new_player_away.rating - away_elo.rating;
 
-
         // update elos
         starting_elos.insert(home, new_player_home);
         starting_elos.insert(away, new_player_away);
@@ -98,5 +94,5 @@ pub fn simulate_season(
         simulated_games[i] = simulated_game;
     }
 
-    (starting_elos, simulated_games)
+    (starting_elos, simulated_games.to_vec())
 }
