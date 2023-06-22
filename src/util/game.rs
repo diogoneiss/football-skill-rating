@@ -33,8 +33,4 @@ impl Game {
             GameResult::D => (Outcomes::DRAW, Outcomes::DRAW),
         }
     }
-
-    pub fn get_goal_diff(&self) -> i32 {
-        self.home_score as i32 - self.away_score as i32
-    }
 }

@@ -60,20 +60,18 @@ pub fn construct_elo_table_for_year(
         let (new_player_home, new_player_away) =
             elo(&home_team_elo, &away_team_elo, &home_outcome, elo_config);
 
-        if DEBUG_INFO {
-            if home_team == "Cruzeiro" || away_team == "Cruzeiro" {
-                println!("{:?}", partida);
-                if home_team == "Cruzeiro" {
-                    println!(
-                        "Cruzeiro: elo: {} -> {}",
-                        home_team_elo.rating, new_player_home.rating
-                    );
-                } else {
-                    println!(
-                        "Cruzeiro: elo: {} -> {}",
-                        away_team_elo.rating, new_player_away.rating
-                    );
-                }
+        if DEBUG_INFO && (home_team == "Cruzeiro" || away_team == "Cruzeiro") {
+            println!("{:?}", partida);
+            if home_team == "Cruzeiro" {
+                println!(
+                    "Cruzeiro: elo: {} -> {}",
+                    home_team_elo.rating, new_player_home.rating
+                );
+            } else {
+                println!(
+                    "Cruzeiro: elo: {} -> {}",
+                    away_team_elo.rating, new_player_away.rating
+                );
             }
         }
 
@@ -97,7 +95,7 @@ fn check_time_series_interval(
 }
 
 pub fn construct_elo_table_for_time_series(
-    all_matches: Vec<Game>,
+    all_matches: &[Game],
     elo_config: Option<&EloConfig>,
     start_year: u16,
     end_year: u16,
@@ -152,10 +150,14 @@ pub fn print_elo_table(elo_table: &EloTable, order_elos: bool) {
 
     // Convert the elo_table to a vector of tuples so it can be sorted.
     let mut table: Vec<_> = elo_table.iter().collect();
-    
+
     if order_elos {
         // Sort by elo in descending order.
-        table.sort_by(|a, b| b.1.rating.partial_cmp(&a.1.rating).unwrap_or(std::cmp::Ordering::Equal));
+        table.sort_by(|a, b| {
+            b.1.rating
+                .partial_cmp(&a.1.rating)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
     } else {
         // Sort alphabetically by team name.
         table.sort_by_key(|a| a.0.clone());
@@ -173,4 +175,3 @@ pub fn print_elo_table(elo_table: &EloTable, order_elos: bool) {
     }
     println!("{}", divider);
 }
-
